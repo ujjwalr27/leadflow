@@ -75,7 +75,12 @@ async def _handle_validation_error(_: Request, exc: Exception) -> JSONResponse:
             status.HTTP_400_BAD_REQUEST, "bad_request", "Request body is not valid JSON."
         )
     details = [
-        {"field": _field_path(tuple(error["loc"])), "message": error["msg"], "type": error["type"]}
+        {
+            "field": _field_path(tuple(error["loc"])),
+            # Custom validators raise ValueError; Pydantic prefixes those with "Value error, ".
+            "message": error["msg"].removeprefix("Value error, "),
+            "type": error["type"],
+        }
         for error in errors
     ]
     return error_response(

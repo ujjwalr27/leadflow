@@ -1,16 +1,27 @@
+import re
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import Field, StringConstraints, field_validator
+from pydantic import AfterValidator, Field, StringConstraints, field_validator
 
 from app.models.enums import DiscussionKind, LeadStatus
 from app.schemas.common import InputModel, OutputModel, blank_to_none
 
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
 Company = Annotated[str, StringConstraints(strip_whitespace=True, max_length=120)]
+PHONE_PATTERN = re.compile(r"^[0-9+()\-\s.]{3,40}$")
+
+
+def _validate_phone(value: str) -> str:
+    if not PHONE_PATTERN.fullmatch(value):
+        raise ValueError("Enter a valid phone number (digits, spaces and + ( ) - . only)")
+    return value
+
+
 Phone = Annotated[
     str,
-    StringConstraints(strip_whitespace=True, pattern=r"^[0-9+()\-\s.]{3,40}$"),
+    StringConstraints(strip_whitespace=True),
+    AfterValidator(_validate_phone),
     Field(examples=["555-0199"]),
 ]
 
