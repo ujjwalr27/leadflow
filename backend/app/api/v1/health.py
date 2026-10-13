@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -21,7 +23,7 @@ class HealthStatus(BaseModel):
     summary="Liveness and database connectivity check",
     responses={503: {"model": ErrorResponse}},
 )
-def health(db: Session = Depends(get_db)) -> HealthStatus:
+def health(db: Annotated[Session, Depends(get_db)]) -> HealthStatus:
     try:
         db.execute(text("SELECT 1"))
     except SQLAlchemyError as exc:

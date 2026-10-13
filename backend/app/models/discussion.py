@@ -34,6 +34,9 @@ class Discussion(Base):
 
     lead: Mapped[Lead] = relationship(back_populates="discussions")
 
+    # Fetch server-generated `created_at` via RETURNING on insert.
+    __mapper_args__ = {"eager_defaults": True}  # noqa: RUF012  (SQLAlchemy convention)
+
     def __repr__(self) -> str:
         return f"<Discussion id={self.id} lead_id={self.lead_id} kind={self.kind}>"
 

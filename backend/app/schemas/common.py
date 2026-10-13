@@ -35,5 +35,9 @@ def blank_to_none(value: Any) -> Any:
 
 
 # Shared OpenAPI documentation for error responses.
-NOT_FOUND = {404: {"model": ErrorResponse, "description": "Lead not found"}}
-VALIDATION = {422: {"model": ErrorResponse, "description": "Invalid input"}}
+NOT_FOUND: dict[int | str, dict[str, Any]] = {
+    404: {"model": ErrorResponse, "description": "Lead not found"}
+}
+VALIDATION: dict[int | str, dict[str, Any]] = {
+    422: {"model": ErrorResponse, "description": "Invalid input"}
+}
