@@ -76,12 +76,12 @@ def list_leads(
         stmt = stmt.where(Lead.status == status)
     if search:
         stmt = stmt.where(Lead.name.icontains(search.strip(), autoescape=True))
-    rows: Sequence[tuple[Lead, Discussion | None]] = db.execute(stmt).tuples().all()
+    rows: Sequence[tuple[Lead, Discussion | None]] = db.execute(stmt).all()
     return [_to_read(lead, last) for lead, last in rows]
 
 
 def get_lead(db: Session, lead_id: int) -> LeadRead:
-    row = db.execute(_with_last_discussion().where(Lead.id == lead_id)).tuples().one_or_none()
+    row = db.execute(_with_last_discussion().where(Lead.id == lead_id)).one_or_none()
     if row is None:
         raise LeadNotFoundError(lead_id)
     lead, last = row
