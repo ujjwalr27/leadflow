@@ -84,8 +84,8 @@ lead_status = new | contacted | qualified | proposal_sent | won | lost
 ### 3.2 Business rules (decisions on ambiguities in the brief)
 1. **Timestamps** are stored in UTC (`timestamptz`) and rendered in the browser's local timezone. "Today" therefore means *the user's* today.
 2. **Creating a lead** also inserts a `system` discussion ("Lead created."), so the timeline is never empty. This matches the italic first entry in the wireframe.
-3. **Adding a note with a follow-up** sets `lead.next_follow_up_at = follow_up_at`. A note *without* a follow-up leaves any existing follow-up unchanged.
-4. **Adding any discussion** bumps `lead.last_activity_at`, which drives the "time ago" text and the default sort order.
+3. **Adding a note with a follow-up** sets `lead.next_follow_up_at = follow_up_at`. A note sent with `clear_follow_up: true` marks the current follow-up as done (sets it to `null`); in the UI this is a "Mark follow-up as done" checkbox, pre-checked when the follow-up is due. Any other note leaves the existing follow-up unchanged.
+4. **Adding any timeline entry** (note or system) bumps `lead.last_activity_at`, which drives the "time ago" text and the default sort order.
 5. **Changing status** writes a `system` discussion ("Status changed from Contacted to Qualified"), giving an audit trail in the timeline.
 6. **Follow-up validation:** `follow_up_at` must not be in the past (60-second tolerance for clock skew). Otherwise the API returns `422`.
 7. **"Last note"** is the most recent discussion of kind `note`. If there is none, the list falls back to the most recent `system` entry.
@@ -170,7 +170,7 @@ backend/
 
 **`POST /leads/{id}/discussions` request**
 ```json
-{ "body": "Called, they want a demo.", "follow_up_at": "2026-10-15T09:30:00+05:30" }
+{ "body": "Called, they want a demo.", "follow_up_at": "2026-10-15T09:30:00+05:30", "clear_follow_up": false }
 ```
 The response returns the created discussion **and** the updated lead, so the client can update the cache without a second round trip.
 
