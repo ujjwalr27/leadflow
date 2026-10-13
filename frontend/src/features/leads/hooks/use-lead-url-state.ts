@@ -1,15 +1,30 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useCallback } from "react";
 
-import { isLeadStatus, type LeadStatus } from "../types";
+import { isLeadStatus } from "../types";
 
 type ParamName = "status" | "q" | "lead";
 
 function parseLeadId(value: string | null): number | null {
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+/**
+ * Update board params in the URL without a reload; `null` / empty removes a param.
+ * Next.js syncs `replaceState` with `useSearchParams`, so every reader re-renders.
+ */
+export function setLeadUrlParams(updates: Partial<Record<ParamName, string | null>>): void {
+  const params = new URLSearchParams(window.location.search);
+  for (const [name, value] of Object.entries(updates)) {
+    if (value) params.set(name, value);
+    else params.delete(name);
+  }
+  const queryString = params.toString();
+  if (queryString !== window.location.search.replace(/^\?/, "")) {
+    window.history.replaceState(null, "", queryString ? `?${queryString}` : location.pathname);
+  }
 }
 
 /**
@@ -20,22 +35,10 @@ export function useLeadUrlState() {
   const searchParams = useSearchParams();
   const rawStatus = searchParams.get("status");
 
-  const status: LeadStatus | null = isLeadStatus(rawStatus) ? rawStatus : null;
-  const query = searchParams.get("q") ?? "";
-  const leadId = parseLeadId(searchParams.get("lead"));
-
-  /** Update params in place; `null` / empty removes a param. Uses `replaceState` (no reload). */
-  const setParams = useCallback((updates: Partial<Record<ParamName, string | null>>) => {
-    const params = new URLSearchParams(window.location.search);
-    for (const [name, value] of Object.entries(updates)) {
-      if (value) params.set(name, value);
-      else params.delete(name);
-    }
-    const queryString = params.toString();
-    if (queryString !== window.location.search.replace(/^\?/, "")) {
-      window.history.replaceState(null, "", queryString ? `?${queryString}` : location.pathname);
-    }
-  }, []);
-
-  return { status, query, leadId, setParams };
+  return {
+    status: isLeadStatus(rawStatus) ? rawStatus : null,
+    query: searchParams.get("q") ?? "",
+    leadId: parseLeadId(searchParams.get("lead")),
+    setParams: setLeadUrlParams,
+  };
 }

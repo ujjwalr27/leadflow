@@ -31,7 +31,7 @@ export class ApiError extends Error {
   get fieldErrors(): Record<string, string> {
     const errors: Record<string, string> = {};
     for (const detail of this.details ?? []) {
-      errors[detail.field] ??= detail.message.replace(/^Value error, /, "");
+      errors[detail.field] ??= detail.message;
     }
     return errors;
   }

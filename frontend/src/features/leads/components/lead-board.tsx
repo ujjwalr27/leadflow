@@ -19,10 +19,11 @@ import { LeadCard } from "./lead-card";
 import { LeadSection } from "./lead-section";
 import { SearchInput } from "./search-input";
 import { StatusFilter } from "./status-filter";
+import { LeadTimelineDialog } from "./timeline/lead-timeline-dialog";
 
 /** The single LeadFlow screen: filters, search, pinned follow-ups and the lead list. */
 export function LeadBoard() {
-  const { status, query, setParams } = useLeadUrlState();
+  const { status, query, leadId, setParams } = useLeadUrlState();
   const [searchText, setSearchText] = useState(query);
   const search = useDebouncedValue(searchText.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -80,7 +81,15 @@ export function LeadBoard() {
       ) : (
         <LeadSections
           leads={leadsQuery.data}
-          onOpenLead={(leadId) => setParams({ lead: String(leadId) })}
+          onOpenLead={(id) => setParams({ lead: String(id) })}
+        />
+      )}
+
+      {leadId !== null && (
+        <LeadTimelineDialog
+          key={leadId}
+          leadId={leadId}
+          onClose={() => setParams({ lead: null })}
         />
       )}
     </div>
