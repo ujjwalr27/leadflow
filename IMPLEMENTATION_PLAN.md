@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| **Status** | In progress |
+| **Status** | Implemented (see [`TODO.md`](TODO.md) for remaining delivery steps) |
 | **Source brief** | [`docs/ASSIGNMENT.md`](docs/ASSIGNMENT.md) |
 | **Wireframes** | [`landing-page`](docs/wireframes/landing-page.png) · [`add-lead`](docs/wireframes/add-lead.png) · [`lead-timeline`](docs/wireframes/lead-timeline.png) |
 | **Task tracker** | [`TODO.md`](TODO.md) |
@@ -43,8 +43,8 @@
 
 | Layer | Choice | Rationale |
 |---|---|---|
-| Frontend | **Next.js 15 (App Router) + TypeScript (strict)** | Preferred by the brief; type safety end to end |
-| Styling | **Tailwind CSS** + **Radix UI** primitives (Dialog, Select, Checkbox) | Accessible dialogs (focus trap, Esc, ARIA) without heavy UI kits |
+| Frontend | **Next.js 16 (App Router, Cache Components) + TypeScript (strict)** | Preferred by the brief; type safety end to end |
+| Styling | **Tailwind CSS v4** + **Radix UI Dialog**; native `<select>` / checkbox | Accessible dialogs (focus trap, Esc, ARIA) without heavy UI kits; native controls match the wireframe |
 | Server state | **TanStack Query v5** | Caching, invalidation, and optimistic updates → "reflects immediately" |
 | Dates | **date-fns** | Tree-shakeable; `formatDistanceToNowStrict`, `isToday` |
 | Icons | **lucide-react** | Matches the wireframe's line icons |
@@ -321,7 +321,7 @@ WEB_PORT=3000
 |---|---|---|
 | `db` | `postgres:16-alpine` | named volume; `pg_isready` healthcheck |
 | `api` | `backend/Dockerfile` (python:3.12-slim, non-root user) | `depends_on: db (healthy)`; entrypoint runs migrations, then the seed, then uvicorn; `/api/v1/health` healthcheck |
-| `web` | `frontend/Dockerfile` (multi-stage, `output: "standalone"`, node:20-alpine) | `NEXT_PUBLIC_API_URL` passed as a **build arg** (Next inlines it at build time) |
+| `web` | `frontend/Dockerfile` (multi-stage, `output: "standalone"`, node:24-alpine) | `NEXT_PUBLIC_API_URL` passed as a **build arg** (Next inlines it at build time) |
 
 `docker compose up --build` starts the full app at http://localhost:3000, with the API docs at http://localhost:8000/docs.
 
