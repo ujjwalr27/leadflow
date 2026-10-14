@@ -8,9 +8,15 @@ SQLAlchemy 2 · Alembic · PostgreSQL 16 — Docker Compose · GitHub Actions
 
 ![Lead list with pinned follow-ups](docs/screenshots/lead-list.png)
 
-| Lead timeline | Filters + search | Sign in |
-| --- | --- | --- |
-| ![Lead timeline dialog](docs/screenshots/lead-timeline.png) | ![Status filter and search](docs/screenshots/filters-and-search.png) | ![Login page](docs/screenshots/login.png) |
+### Screenshots of the working flow
+
+| 1. Sign in | 2. Filter by status + search by name |
+| --- | --- |
+| ![Login page with demo account](docs/screenshots/login.png) | ![Qualified filter with name search](docs/screenshots/filters-and-search.png) |
+| **3. Add a new lead** | **4. Lead timeline (newest first)** |
+| ![Add New Lead dialog](docs/screenshots/add-lead.png) | ![Lead timeline dialog](docs/screenshots/lead-timeline.png) |
+| **5. Log a discussion with a follow-up** | **6. Mobile layout** |
+| ![Discussion form with follow-up date and time](docs/screenshots/log-discussion.png) | ![Lead list on a phone](docs/screenshots/mobile.png) |
 
 ---
 
