@@ -8,9 +8,9 @@ SQLAlchemy 2 · Alembic · PostgreSQL 16 — Docker Compose · GitHub Actions
 
 ![Lead list with pinned follow-ups](docs/screenshots/lead-list.png)
 
-| Lead timeline | Filters + search |
-| --- | --- |
-| ![Lead timeline dialog](docs/screenshots/lead-timeline.png) | ![Status filter and search](docs/screenshots/filters-and-search.png) |
+| Lead timeline | Filters + search | Sign in |
+| --- | --- | --- |
+| ![Lead timeline dialog](docs/screenshots/lead-timeline.png) | ![Status filter and search](docs/screenshots/filters-and-search.png) | ![Login page](docs/screenshots/login.png) |
 
 ---
 
@@ -47,6 +47,15 @@ SQLAlchemy 2 · Alembic · PostgreSQL 16 — Docker Compose · GitHub Actions
 **Add new lead:** name is required; company and phone are optional; status defaults to **New**.
 Validation runs on the client and the server, and field errors from the API show inline.
 
+**Login**
+- Email and password sign-in. The session is a signed JWT in an **httpOnly, SameSite=Lax
+  cookie**, so page scripts can never read it.
+- Every lead endpoint requires a session. Signed-out visitors are sent to `/login` and returned
+  to the exact page afterwards (`?next=`, with protection against open redirects).
+- An expired session redirects to sign-in automatically. Sign-out clears the cookie and all
+  cached data.
+- Passwords are hashed with Argon2. A failed login never reveals whether the email exists.
+
 ## Quick start (Docker)
 
 Requires Docker with Compose v2.
@@ -59,12 +68,12 @@ docker compose up --build
 
 | Service | URL |
 | --- | --- |
-| Web app | http://localhost:3000 |
+| Web app | http://localhost:3000 (sign in with **demo@leadflow.dev / leadflow123**) |
 | API docs (Swagger) | http://localhost:8000/docs |
 | PostgreSQL | `localhost:5432` (user / password / db: `leadflow`) |
 
-On startup the API container applies migrations and **seeds 8 demo leads** (when the database is
-empty). The seed covers every status and every follow-up state: due today, overdue, upcoming,
+On startup the API container applies migrations, creates the **demo account**, and **seeds 8 demo
+leads** (when the database is empty). The seed covers every status and every follow-up state: due today, overdue, upcoming,
 and none.
 
 > **Tip:** set `SEED_TIMEZONE` in `.env` to your timezone (e.g. `Asia/Kolkata`) so the demo's
@@ -86,7 +95,7 @@ docker compose up -d db
 cd backend
 uv sync
 uv run alembic upgrade head
-uv run python -m scripts.seed          # add --reset to wipe and re-seed
+uv run python -m scripts.seed          # demo user + leads; add --reset to re-seed leads
 uv run uvicorn app.main:app --reload
 
 # 3. Web  →  http://localhost:3000   (in another terminal)
@@ -98,6 +107,15 @@ npm run dev
 
 The API reads configuration from environment variables or a `.env` file in `backend/` or the
 repository root.
+
+**Adding users:** there is no public sign-up page. Create accounts with the CLI, which prompts
+for the password:
+
+```bash
+cd backend && uv run python -m scripts.create_user --email rep@acme.com --name "Jane Rep"
+# with Docker:
+docker compose exec api python -m scripts.create_user --email rep@acme.com --name "Jane Rep"
+```
 
 ## Environment variables
 
@@ -113,6 +131,10 @@ All variables are listed in [`.env.example`](.env.example).
 | `LOG_LEVEL` | `info` | api | Python log level |
 | `SEED_ON_STARTUP` | `true` | api (Docker) | Seed demo data on start if the DB has no leads |
 | `SEED_TIMEZONE` | `UTC` | seed | IANA timezone that defines "today" for demo follow-ups |
+| `JWT_SECRET_KEY` | *(dev fallback)* | api | Signs session tokens, at least 32 characters. **Required outside local development**; the API logs a warning when it falls back |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `720` | api | Session lifetime |
+| `COOKIE_SECURE` | `false` | api | Send the session cookie over HTTPS only (`true` in production) |
+| `DEMO_USER_EMAIL` / `DEMO_USER_PASSWORD` | `demo@leadflow.dev` / `leadflow123` | seed | Demo account created if missing |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | web | API URL as seen by the **browser**, inlined at build time (Docker build arg) |
 | `WEB_PORT` | `3000` | compose | Host port for the web app |
 | `TEST_DATABASE_URL` | `<DATABASE_URL db>_test` | tests | Optional override for the test database |
@@ -123,13 +145,20 @@ Base path: `/api/v1`. Interactive docs at [`/docs`](http://localhost:8000/docs).
 
 | Method | Path | Description | Success | Errors |
 | --- | --- | --- | --- | --- |
-| `GET` | `/health` | Liveness + database check | `200` | `503` |
+| `GET` | `/health` | Liveness + database check (public) | `200` | `503` |
+| `POST` | `/auth/login` | Sign in: sets the session cookie and returns the token | `200` | `401`, `422` |
+| `POST` | `/auth/logout` | Clear the session cookie | `204` | |
+| `GET` | `/auth/me` | Current user | `200` | `401` |
 | `GET` | `/leads?status=&search=` | List leads (with latest note), most recent activity first | `200` | `422` |
 | `POST` | `/leads` | Create a lead | `201` + `Location` | `422` |
 | `GET` | `/leads/{id}` | Get a lead | `200` | `404` |
 | `PATCH` | `/leads/{id}` | Partial update (e.g. status) | `200` | `404`, `422` |
 | `GET` | `/leads/{id}/discussions` | Timeline, newest first | `200` | `404` |
 | `POST` | `/leads/{id}/discussions` | Log a discussion (`body`, optional `follow_up_at`, `clear_follow_up`) | `201` | `404`, `422` |
+
+All `/leads` endpoints require a session, either the cookie (browsers) or `Authorization: Bearer
+<token>` (API clients; use **Authorize** in Swagger). Without one they return `401`
+`not_authenticated`.
 
 Every error uses one envelope:
 
@@ -144,7 +173,7 @@ Unexpected errors return `500` and are logged server-side without leaking intern
 ## Testing & quality
 
 ```bash
-# Backend: 44 tests against a real PostgreSQL test database (created automatically)
+# Backend: 65 tests against a real PostgreSQL test database (created automatically)
 cd backend
 uv run pytest
 uv run ruff check . && uv run ruff format --check . && uv run mypy app scripts tests
@@ -164,19 +193,20 @@ CI also checks that migrations roll back cleanly and that both Docker images bui
 .
 ├── backend/                     FastAPI service
 │   ├── app/
-│   │   ├── api/v1/              HTTP layer: routers only (health, leads, discussions)
-│   │   ├── core/                settings, error types + JSON error envelope handlers
+│   │   ├── api/                 HTTP layer: v1 routers (health, auth, leads, discussions), deps
+│   │   ├── core/                settings, security (Argon2, JWT), error envelope handlers
 │   │   ├── db/                  engine/session, declarative base
 │   │   ├── models/              SQLAlchemy models (Lead, Discussion, enums)
 │   │   ├── schemas/             Pydantic request/response models
 │   │   └── services/            business rules + transactions
 │   ├── alembic/                 migrations
-│   ├── scripts/seed.py          idempotent demo data
+│   ├── scripts/                 seed.py (idempotent demo data), create_user.py
 │   └── tests/                   pytest suite (transactional fixtures)
 ├── frontend/                    Next.js app
 │   └── src/
 │       ├── app/                 layout, page (single screen), global styles
 │       ├── components/ui/       reusable primitives (Button, Dialog, Field, states…)
+│       ├── features/auth/       login form, auth gate, user menu, safe redirects
 │       ├── features/leads/      feature module
 │       │   ├── components/      LeadBoard, LeadCard, StatusFilter, AddLeadDialog, timeline/…
 │       │   ├── lib/follow-ups   pure follow-up classification (unit tested)
@@ -208,12 +238,16 @@ The full rationale is in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). The k
   straight into every cached list, then revalidated in the background.
 - **No N+1 queries.** The list endpoint fetches each lead's latest discussion with a single
   `LATERAL` join.
-- **Login is not implemented.** The brief marks it optional, so it's listed under future
-  improvements below.
+- **Sessions use httpOnly cookies, not localStorage.** An XSS bug can't steal the token, and
+  SameSite=Lax plus JSON-only endpoints (which force a CORS preflight) block CSRF. The API also
+  accepts Bearer tokens for non-browser clients.
+- **Leads are a shared team workspace.** Login gates access, but every signed-in rep sees all
+  leads. Per-rep ownership is a listed next step.
 
 ## Future improvements
 
-- Authentication (JWT) and per-rep lead ownership
+- Per-rep lead ownership and roles; self-service sign-up and password reset
+- Login rate limiting / lockout
 - Pagination / infinite scroll and full-text search across notes
 - Editing and deleting discussions; editing lead details from the dialog
 - Browser or email notifications for due follow-ups

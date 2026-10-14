@@ -133,6 +133,17 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · **(F1)** = evaluation-m
 - [x] Stop the API → the UI shows an error state, not a blank screen
 
 ## Stretch (only if time remains)
-- [ ] Optional login (JWT) with a seeded demo user
+- [x] Optional login (JWT in httpOnly cookie) with a seeded demo user (see M7)
 - [ ] Playwright E2E in CI
 - [ ] Edit or delete discussions
+
+## M7 — Authentication (optional in the brief)
+- [x] `users` table + migration; Argon2 hashing (pwdlib); JWT (PyJWT), secret >= 32 chars
+- [x] `POST /auth/login` (httpOnly SameSite=Lax cookie + token), `POST /auth/logout`, `GET /auth/me`
+- [x] All lead/discussion endpoints require a session (cookie or Bearer); `/health` public
+- [x] Constant-time failed login; same 401 for unknown email, wrong password, inactive user
+- [x] Seed creates demo user; `scripts/create_user.py` CLI
+- [x] Auth tests (21) and existing tests run through the real login flow
+- [x] `/login` page, `AuthGate`, user menu + sign-out, global 401 → `/login?next=…` (sanitised)
+- [x] Compose / `.env.example` / README updated
+- [ ] Per-rep lead ownership, sign-up, password reset, login rate limiting

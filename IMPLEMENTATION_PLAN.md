@@ -34,8 +34,10 @@
 | D2 | Meaningful git commit history | Conventional Commits, one feature per commit (§9) |
 
 ### 1.2 Out of scope (stretch only if time permits)
-- Authentication / login (the brief marks it optional).
 - Multi-user ownership, pagination, editing or deleting notes, notifications.
+
+### 1.3 Added after the core scope: authentication (§14)
+The brief lists login as optional; it was added once the graded scope was complete.
 
 ---
 
@@ -401,3 +403,19 @@ WEB_PORT=3000
 - Edit and delete discussions; lead edit and archive.
 - Browser notifications or email for due follow-ups.
 - Playwright E2E tests in CI.
+
+---
+
+## 14. Authentication (added)
+
+| Concern | Decision |
+|---|---|
+| Credentials | Email + password; Argon2 hashes via `pwdlib`; email stored lower-cased (unique) |
+| Session | JWT (HS256, `sub` = user id, `exp`), 12 h default, in an **httpOnly, SameSite=Lax** cookie; `Secure` via `COOKIE_SECURE` |
+| API clients | The same token is returned by `/auth/login` and accepted as `Authorization: Bearer` |
+| Protection | `get_current_user` dependency on the leads and discussions routers; `/health` and `/auth/login` are public |
+| Errors | `401 not_authenticated` (+ `WWW-Authenticate: Bearer`); `401 invalid_credentials` for failed logins, identical for unknown email, wrong password and inactive user, with a dummy hash check to equalise timing |
+| CSRF | SameSite=Lax + JSON bodies (non-simple requests need a CORS preflight) + explicit `CORS_ORIGINS` with credentials |
+| Frontend | `/login` page; `AuthGate` around the board; a global 401 handler in the query cache redirects to `/login?next=…`; `next` is sanitised to same-origin paths |
+| Accounts | Seed creates a demo user; `scripts/create_user.py` for more; no public sign-up |
+| Scope | Leads remain a shared workspace; per-rep ownership is future work |

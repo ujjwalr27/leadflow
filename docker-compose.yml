@@ -32,6 +32,11 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       SEED_ON_STARTUP: ${SEED_ON_STARTUP:-true}
       SEED_TIMEZONE: ${SEED_TIMEZONE:-UTC}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-720}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      DEMO_USER_EMAIL: ${DEMO_USER_EMAIL:-demo@leadflow.dev}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-leadflow123}
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:

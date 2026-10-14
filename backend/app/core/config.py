@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
+        # `JWT_SECRET_KEY=` (empty) means "not set" rather than an empty secret.
+        env_ignore_empty=True,
         extra="ignore",
     )
 
