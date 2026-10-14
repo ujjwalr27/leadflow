@@ -73,6 +73,8 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     response = await fetch(buildUrl(path, query), {
       method,
       signal,
+      // Send the httpOnly session cookie set by POST /auth/login.
+      credentials: "include",
       headers: body === undefined ? undefined : { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
@@ -82,7 +84,13 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   if (!response.ok) throw await toApiError(response);
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
+}
+
+/** The session is missing or expired (as opposed to a failed login attempt). */
+export function isUnauthenticated(error: unknown): boolean {
+  return error instanceof ApiError && error.code === "not_authenticated";
 }
 
 export function errorMessage(error: unknown): string {

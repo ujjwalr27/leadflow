@@ -1,13 +1,21 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 
-import { ApiError } from "@/lib/api-client";
+import { redirectToLogin } from "@/features/auth/redirect";
+import { ApiError, isUnauthenticated } from "@/lib/api-client";
+
+/** Any request that finds the session missing or expired sends the user to sign in. */
+function handleUnauthenticated(error: unknown) {
+  if (isUnauthenticated(error)) redirectToLogin();
+}
 
 function makeQueryClient() {
   return new QueryClient({
+    queryCache: new QueryCache({ onError: handleUnauthenticated }),
+    mutationCache: new MutationCache({ onError: handleUnauthenticated }),
     defaultOptions: {
       queries: {
         staleTime: 30_000,
