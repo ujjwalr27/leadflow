@@ -8,6 +8,9 @@ Usage (from `backend/`):
 All timestamps are relative to the moment the script runs, so the demo always shows leads
 with follow-ups due today, overdue, upcoming and none. Re-run with `--reset` to refresh them.
 
+A demo account is also created if missing (DEMO_USER_EMAIL / DEMO_USER_PASSWORD, defaulting
+to demo@leadflow.dev / leadflow123). `--reset` only touches leads, never users.
+
 "Due today" follow-ups are kept before midnight in the viewer's timezone, taken from `--tz`,
 the `SEED_TIMEZONE` environment variable, or the machine's local timezone (in that order).
 """
@@ -24,6 +27,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
 from app.models import Discussion, DiscussionKind, Lead, LeadStatus
+from app.services import auth_service
 
 logger = logging.getLogger("seed")
 
@@ -171,6 +175,17 @@ def build_lead(seed: SeedLead, now: datetime, tz: tzinfo) -> Lead:
     )
 
 
+DEMO_USER_NAME = "Demo Rep"
+
+
+def ensure_demo_user(db: Session) -> None:
+    email = os.environ.get("DEMO_USER_EMAIL") or "demo@leadflow.dev"
+    password = os.environ.get("DEMO_USER_PASSWORD") or "leadflow123"
+    if auth_service.get_user_by_email(db, email) is None:
+        auth_service.create_user(db, email=email, name=DEMO_USER_NAME, password=password)
+        logger.info("Created demo user %s.", email)
+
+
 def seed(db: Session, *, reset: bool = False, tz: tzinfo = UTC) -> int:
     """Insert demo data. Returns the number of leads created (0 if skipped)."""
     if reset:
@@ -199,6 +214,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(name)s] %(message)s")
     tz: tzinfo = ZoneInfo(args.tz) if args.tz else datetime.now().astimezone().tzinfo or UTC
     with SessionLocal() as db:
+        ensure_demo_user(db)
         seed(db, reset=args.reset, tz=tz)
 
 

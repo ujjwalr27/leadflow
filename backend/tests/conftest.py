@@ -19,6 +19,8 @@ from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.models import User
+from app.services import auth_service
 
 
 def _test_database_url() -> str:
@@ -70,12 +72,33 @@ def db(engine: Engine) -> Iterator[Session]:
         connection.close()
 
 
+TEST_PASSWORD = "correct-horse-battery"
+
+
 @pytest.fixture
-def client(db: Session) -> Iterator[TestClient]:
+def anon_client(db: Session) -> Iterator[TestClient]:
+    """A client with no session — for testing authentication itself."""
     app.dependency_overrides[get_db] = lambda: db
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def user(db: Session) -> User:
+    return auth_service.create_user(
+        db, email="Rep@LeadFlow.dev", name="Test Rep", password=TEST_PASSWORD
+    )
+
+
+@pytest.fixture
+def client(anon_client: TestClient, user: User) -> TestClient:
+    """A client signed in through the real login endpoint (session cookie)."""
+    response = anon_client.post(
+        "/api/v1/auth/login", json={"email": user.email, "password": TEST_PASSWORD}
+    )
+    assert response.status_code == 200, response.text
+    return anon_client
 
 
 @pytest.fixture

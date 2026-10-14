@@ -41,3 +41,6 @@ NOT_FOUND: dict[int | str, dict[str, Any]] = {
 VALIDATION: dict[int | str, dict[str, Any]] = {
     422: {"model": ErrorResponse, "description": "Invalid input"}
 }
+UNAUTHORIZED: dict[int | str, dict[str, Any]] = {
+    401: {"model": ErrorResponse, "description": "Not signed in or invalid credentials"}
+}

@@ -3,5 +3,6 @@
 from app.models.discussion import Discussion
 from app.models.enums import DiscussionKind, LeadStatus
 from app.models.lead import Lead
+from app.models.user import User
 
-__all__ = ["Discussion", "DiscussionKind", "Lead", "LeadStatus"]
+__all__ = ["Discussion", "DiscussionKind", "Lead", "LeadStatus", "User"]

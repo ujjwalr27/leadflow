@@ -7,7 +7,7 @@ Every error response has the shape::
 
 import logging
 from http import HTTPStatus
-from typing import Any
+from typing import Any, ClassVar
 
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
@@ -25,6 +25,7 @@ class AppError(Exception):
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
     code: str = "internal_error"
     message: str = "An unexpected error occurred."
+    headers: ClassVar[dict[str, str] | None] = None
 
     def __init__(self, message: str | None = None, *, details: Any = None) -> None:
         self.message = message or self.message
@@ -45,15 +46,33 @@ class LeadNotFoundError(NotFoundError):
         super().__init__(f"Lead {lead_id} does not exist.")
 
 
+class NotAuthenticatedError(AppError):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    code = "not_authenticated"
+    message = "Sign in to continue."
+    headers: ClassVar[dict[str, str] | None] = {"WWW-Authenticate": "Bearer"}
+
+
+class InvalidCredentialsError(NotAuthenticatedError):
+    code = "invalid_credentials"
+    message = "Incorrect email or password."
+
+
 class ServiceUnavailableError(AppError):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     code = "service_unavailable"
     message = "The service is temporarily unavailable. Please try again shortly."
 
 
-def error_response(status_code: int, code: str, message: str, details: Any = None) -> JSONResponse:
+def error_response(
+    status_code: int,
+    code: str,
+    message: str,
+    details: Any = None,
+    headers: dict[str, str] | None = None,
+) -> JSONResponse:
     content = {"error": {"code": code, "message": message, "details": details}}
-    return JSONResponse(status_code=status_code, content=jsonable_encoder(content))
+    return JSONResponse(status_code=status_code, content=jsonable_encoder(content), headers=headers)
 
 
 def _field_path(loc: tuple[int | str, ...]) -> str:
@@ -64,7 +83,7 @@ def _field_path(loc: tuple[int | str, ...]) -> str:
 
 async def _handle_app_error(_: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, AppError)
-    return error_response(exc.status_code, exc.code, exc.message, exc.details)
+    return error_response(exc.status_code, exc.code, exc.message, exc.details, exc.headers)
 
 
 async def _handle_validation_error(_: Request, exc: Exception) -> JSONResponse:
