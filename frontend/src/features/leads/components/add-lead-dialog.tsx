@@ -24,9 +24,11 @@ export function AddLeadDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button aria-label="Add New Lead">
           <Plus className="size-4" aria-hidden />
-          Add New Lead
+          {/* Shorter label on phones so the header fits next to the user menu. */}
+          <span className="sm:hidden">Add</span>
+          <span className="hidden sm:inline">Add New Lead</span>
         </Button>
       </DialogTrigger>
       <DialogContent title="Add New Lead" className="max-w-md">
