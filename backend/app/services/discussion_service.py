@@ -1,6 +1,6 @@
 """Discussion (timeline) use cases.
 
-Follow-up rules (see IMPLEMENTATION_PLAN.md §3.2):
+Follow-up rules:
 - A note with `follow_up_at` sets the lead's next follow-up.
 - A note with `clear_follow_up` marks the current follow-up as done.
 - Otherwise the lead's existing follow-up is left untouched.

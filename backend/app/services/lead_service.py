@@ -1,6 +1,6 @@
 """Lead use cases: listing, creating and updating leads.
 
-Business rules (see IMPLEMENTATION_PLAN.md §3.2):
+Business rules:
 - Creating a lead also records a "Lead created." system entry, so a timeline is never empty.
 - Changing status records a "Status changed from X to Y" system entry.
 - Any new timeline entry bumps `last_activity_at`, which drives the default ordering.

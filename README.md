@@ -223,14 +223,12 @@ CI also checks that migrations roll back cleanly and that both Docker images bui
 │       ├── hooks/               useNow, useDebouncedValue
 │       └── lib/                 API client, time formatting, cn()
 ├── docs/                        assignment brief, wireframes, screenshots
-├── docker-compose.yml
-├── IMPLEMENTATION_PLAN.md       design document
-└── TODO.md                      task tracker
+└── docker-compose.yml
 ```
 
 ## Design decisions
 
-The full rationale is in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). The key choices:
+The key choices and the reasoning behind them:
 
 - **Times are stored in UTC and classified in the browser's local timezone.** "Today" and
   "overdue" are decided client-side with the user's clock, so a follow-up at 11:30 PM IST is
