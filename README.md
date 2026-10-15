@@ -222,7 +222,7 @@ CI also checks that migrations roll back cleanly and that both Docker images bui
 │       │   └── queries.ts       TanStack Query hooks + cache updates
 │       ├── hooks/               useNow, useDebouncedValue
 │       └── lib/                 API client, time formatting, cn()
-├── docs/                        assignment brief, wireframes, screenshots
+├── docs/                        wireframes, screenshots
 └── docker-compose.yml
 ```
 
@@ -233,8 +233,8 @@ The key choices and the reasoning behind them:
 - **Times are stored in UTC and classified in the browser's local timezone.** "Today" and
   "overdue" are decided client-side with the user's clock, so a follow-up at 11:30 PM IST is
   "today" for that user even though it is tomorrow in UTC.
-- **Overdue follow-ups are pinned with today's.** The brief pins today's follow-ups and asks for
-  overdue ones in red. Pinning overdue ones too keeps missed follow-ups from being buried.
+- **Overdue follow-ups are pinned with today's.** The requirements pin today's follow-ups and ask
+  for overdue ones in red. Pinning overdue ones too keeps missed follow-ups from being buried.
 - **One lead appears in exactly one section.** This matches the wireframe.
 - **"Last note" prefers rep notes over system entries.** A status change doesn't hide the latest
   real conversation.
