@@ -1,7 +1,7 @@
 # LeadFlow — TODO
 
 Task tracker for [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md). Section numbers like `§3.2` refer to the plan.
-**Status:** M0–M6 complete except publishing (needs the repo owner's GitHub account) and the demo video.
+**Status:** M0–M7 complete; published with a demo video.
 
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · **(F1)** = evaluation-matrix item.
 
@@ -14,7 +14,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · **(F1)** = evaluation-m
 - [x] Move wireframes into `docs/wireframes/`
 - [x] Commit the assignment brief, `IMPLEMENTATION_PLAN.md`, and `TODO.md`
 - [x] `.env.example` with every variable from §7
-- [ ] Create the public GitHub repo and push
+- [x] Create the public GitHub repo and push
 
 ## M1 — Backend foundation
 - [x] `backend/pyproject.toml`: fastapi, uvicorn[standard], sqlalchemy 2, psycopg[binary], alembic, pydantic-settings; dev: pytest, httpx, ruff, mypy
@@ -111,10 +111,10 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · **(F1)** = evaluation-m
 - [x] GitHub Actions: backend (ruff, mypy, alembic, pytest with a Postgres service) and frontend (lint, tsc, vitest, build)
 - [x] Manual E2E walkthrough (below) passes
 - [x] Screenshots: list, filters/search, timeline (`docs/screenshots/`)
-- [ ] Short demo video / GIF of the full flow
+- [x] Demo video of the full flow (linked in the README)
 - [x] `README.md` (sections listed in §10 of the plan)
 - [x] Final review: no secrets committed, `.env.example` complete, CI green
-- [ ] Push to the public GitHub repo; verify the README renders
+- [x] Push to the public GitHub repo; verify the README renders
 
 ---
 

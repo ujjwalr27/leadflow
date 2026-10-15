@@ -6,6 +6,8 @@ every discussion, and sets follow-up reminders.
 **Stack:** Next.js 16 · React 19 · TypeScript · Tailwind CSS · TanStack Query — FastAPI ·
 SQLAlchemy 2 · Alembic · PostgreSQL 16 — Docker Compose · GitHub Actions
 
+**▶ Demo video:** https://www.youtube.com/watch?v=d8YtykHOS0I · **Demo login:** `demo@leadflow.dev` / `leadflow123`
+
 ![Lead list with pinned follow-ups](docs/screenshots/lead-list.png)
 
 ### Screenshots of the working flow
